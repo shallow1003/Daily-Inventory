@@ -280,8 +280,8 @@
                     </div>
 
                     <div class="form-group">
-                        <label>當日庫存 <span style="color: red;">*</span></label>
-                        <input type="number" id="stock" required min="0">
+                        <label>當日庫存 <span style="color: red;">*</span> <span style="color: #28a745; font-weight: normal;">（自動計算，可修改）</span></label>
+                        <input type="number" id="stock" required min="0" placeholder="自動計算：前日庫存 - 領用 + 進貨">
                     </div>
 
                     <button type="submit" class="btn btn-primary">✅ 新增記錄</button>
@@ -293,7 +293,7 @@
                     <h3>📧 今日填寫完成了嗎？</h3>
                     <p style="margin-bottom: 15px; color: #666;">點擊下方按鈕，系統會自動產生 Excel 報表並寄送到您的 Email</p>
                     <button class="btn btn-warning" onclick="sendReport()">📨 寄送累積報表到 Email</button>
-                    <p style="margin-top: 15px; color: #666;">報表將寄送至：shallow1003@gmail.com</p>
+                    <p style="margin-top: 15px; color: #666;">報表將寄送至：<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ccbfa4ada0a0a3bbfdfcfcff8caba1ada5a0e2afa3a1">[email&#160;protected]</a></p>
                 </div>
             </div>
 
@@ -326,11 +326,4 @@
                     </ol>
                     <p style="margin-top: 15px; color: #666;">詳細教學請參考設定指南文件。</p>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="data.js"></script>
-    <script src="app.js"></script>
-</body>
-</html>
+         
