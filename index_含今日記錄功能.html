@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>庫存管理系統</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        input:disabled {
+            background-color: #f5f5f5;
+            cursor: not-allowed;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(240, 147, 251, 0.4);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .btn-info:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+        }
+
+        .message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        /* 今日記錄樣式 */
+        .today-records {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .today-records.show {
+            display: block;
+        }
+
+        .today-records h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .records-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .records-table th {
+            background: #667eea;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .records-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .records-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .records-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .no-records {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .close-btn {
+            float: right;
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .close-btn:hover {
+            background: #c82333;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.5em;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .records-table {
+                font-size: 14px;
+            }
+
+            .records-table th,
+            .records-table td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📦 庫存管理系統</h1>
+
+        <div class="form-group">
+            <label for="itemSelect">品項：</label>
+            <select id="itemSelect">
+                <option value="">請選擇品項</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="specInput">規格：</label>
+            <input type="text" id="specInput" disabled>
+        </div>
+
+        <div class="form-group">
+            <label for="supplierInput">廠商：</label>
+            <input type="text" id="supplierInput" disabled>
+        </div>
+
+        <div class="form-group">
+            <label for="previousStockInput">前日庫存：</label>
+            <input type="number" id="previousStockInput" disabled>
+        </div>
+
+        <div class="form-group">
+            <label for="usageInput">領用：</label>
+            <input type="number" id="usageInput" min="0" value="0">
+        </div>
+
+        <div class="form-group">
+            <label for="incomingInput">進貨：</label>
+            <input type="number" id="incomingInput" min="0" value="0">
+        </div>
+
+        <div class="form-group">
+            <label for="stockInput">當日庫存：</label>
+            <input type="number" id="stockInput" disabled>
+        </div>
+
+        <div class="button-group">
+            <button class="btn-primary" onclick="submitRecord()">新增記錄</button>
+            <button class="btn-secondary" onclick="sendReport()">📨 寄送完整報表</button>
+            <button class="btn-info" onclick="viewTodayRecords()">📋 查看今日記錄</button>
+        </div>
+
+        <div id="message"></div>
+
+        <!-- 今日記錄區域 -->
+        <div id="todayRecords" class="today-records">
+            <button class="close-btn" onclick="closeTodayRecords()">關閉</button>
+            <h2>📋 今日填寫記錄</h2>
+            <div id="recordsContent"></div>
+        </div>
+    </div>
+
+    <script>
+        // API 網址 - 請替換成您的 Apps Script 部署網址
+        const API_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
+
+        // 所有 98 個品項的資料
+        const allItems = [
+            {item: "砂糖", spec: "50", supplier: "芳源/康律/圓糖", initialStock: 840},
+            {item: "紅糖", spec: "30", supplier: "信誼", initialStock: 242},
+            {item: "黑糖", spec: "25", supplier: "老傳家", initialStock: 263},
+            {item: "冬瓜塊", spec: "5.8", supplier: "信誼", initialStock: 160},
+            {item: "麥芽糖", spec: "30", supplier: "環泰", initialStock: 45},
+            {item: "桂花", spec: "1", supplier: "正德", initialStock: 127},
+            {item: "洛神花", spec: "24", supplier: "正德", initialStock: 5},
+            {item: "梅醬", spec: "18", supplier: "梅珍香", initialStock: 0},
+            {item: "甜梅汁", spec: "21", supplier: "梅珍香", initialStock: 20},
+            {item: "白醋(6度)", spec: "20", supplier: "合將", initialStock: 21},
+            {item: "白醋(10度)", spec: "20", supplier: "合將", initialStock: 0},
+            {item: "楊桃汁", spec: "20", supplier: "玖旺", initialStock: 0},
+            {item: "芒果泥", spec: "6", supplier: "SKOT", initialStock: 159},
+            {item: "蘆薈", spec: "6", supplier: "KODAMAL", initialStock: 1031},
+            {item: "塊椰(1*1cm)", spec: "20", supplier: "越南", initialStock: 301},
+            {item: "條椰", spec: "20", supplier: "越南", initialStock: 302},
+            {item: "烏梅粒", spec: "30", supplier: "宏峻", initialStock: 8},
+            {item: "進口桂圓", spec: "30", supplier: "正德", initialStock: 16},
+            {item: "台灣桂圓", spec: "30", supplier: "李周甘幸", initialStock: 19},
+            {item: "玫瑰", spec: "10", supplier: "合信", initialStock: 10},
+            {item: "紅棗", spec: "10", supplier: "合信", initialStock: 11},
+            {item: "山梨醇液", spec: "23公斤", supplier: "環泰", initialStock: 10},
+            {item: "芋頭粉", spec: "25公斤", supplier: "一海香", initialStock: 7},
+            {item: "428-1", spec: "2.5K空白箱", supplier: "德龍", initialStock: 515},
+            {item: "428-2", spec: "2.5K六角", supplier: "", initialStock: 345},
+            {item: "428-3", spec: "2.5KAOB", supplier: "德龍", initialStock: 1260},
+            {item: "428-4", spec: "2.5K貝里斯", supplier: "德龍", initialStock: 360},
+            {item: "428-6", spec: "2.5K詠翔(白)", supplier: "", initialStock: 1000},
+            {item: "428-7", spec: "2.5K詠翔(黃)", supplier: "德龍", initialStock: 428},
+            {item: "428-9", spec: "2.5K天放", supplier: "正隆", initialStock: 770},
+            {item: "440-2", spec: "5K_空白箱", supplier: "永豐餘", initialStock: 2400},
+            {item: "440-3", spec: "5K_AOB", supplier: "德龍", initialStock: 2040},
+            {item: "440-5", spec: "5K_TOP-1", supplier: "正隆", initialStock: 560},
+            {item: "440-7", spec: "BOBA", supplier: "德龍", initialStock: 450},
+            {item: "430", spec: "4K大湖箱", supplier: "", initialStock: 1400},
+            {item: "430-3", spec: "4K空白箱", supplier: "永豐餘", initialStock: 2000},
+            {item: "430-6", spec: "4K天放", supplier: "正隆", initialStock: 1370},
+            {item: "434-2", spec: "4K傳佳冰沙箱", supplier: "", initialStock: 320},
+            {item: "434-5", spec: "4K伯思美(美規)", supplier: " ", initialStock: 668},
+            {item: "434-5A", spec: "4K伯思美(歐規)", supplier: "德龍", initialStock: 2522},
+            {item: "434-5B", spec: "4K詠翔", supplier: "德龍", initialStock: 720},
+            {item: "429", spec: "大湖箱2.5半月", supplier: "苗強", initialStock: 510},
+            {item: "429-1", spec: "空白箱2.5半月", supplier: "", initialStock: 750},
+            {item: "429-2", spec: "許銘書2.5半月", supplier: "正隆", initialStock: 1340},
+            {item: "432-6", spec: "905/1.8K", supplier: "正隆", initialStock: 215},
+            {item: "433-1", spec: "902/1.1K", supplier: "正隆", initialStock: 570},
+            {item: "446", spec: "1.6=2.1", supplier: "正隆", initialStock: 120},
+            {item: "447-1", spec: "1.3K(F48)", supplier: "正隆", initialStock: 800},
+            {item: "448-1", spec: "烘培3K", supplier: "", initialStock: 411},
+            {item: "461", spec: "傳佳箱", supplier: "德龍", initialStock: 485},
+            {item: "462", spec: "銓綿(康祥)", supplier: "", initialStock: 710},
+            {item: "471", spec: "品客多", supplier: "正隆", initialStock: 670},
+            {item: "471-1", spec: "越南", supplier: "永豐餘", initialStock: 3194},
+            {item: "476", spec: "保齡球", supplier: "正隆", initialStock: 300},
+            {item: "宇潔箱", spec: "宇潔", supplier: "", initialStock: 360},
+            {item: "承恩箱", spec: "大中和", supplier: "", initialStock: 160},
+            {item: "102", spec: "花瓜", supplier: "台昊/黃貴", initialStock: 436},
+            {item: "450", spec: "小草", supplier: "台昊/黃貴", initialStock: 960},
+            {item: "RP-29", spec: "RP29罐", supplier: "台昊/黃貴", initialStock: 240},
+            {item: "RP-123", spec: "500g", supplier: "台昊/黃貴", initialStock: 200},
+            {item: "RP-380", spec: "RP121", supplier: "台昊/黃貴", initialStock: 300},
+            {item: "12入280g", spec: "楊名", supplier: "台昊/黃貴", initialStock: 0},
+            {item: "36入100g", spec: "楊名", supplier: "台昊/黃貴", initialStock: 230},
+            {item: "445", spec: "大湖箱6入", supplier: "苗強", initialStock: 0},
+            {item: "445-4", spec: "空白箱6入", supplier: "苗強", initialStock: 0},
+            {item: "445-A", spec: "九洲箱6入", supplier: "苗強", initialStock: 0},
+            {item: "465", spec: "仙草箱6入", supplier: "苗強", initialStock: 0},
+            {item: "480", spec: "401/12入", supplier: "苗強", initialStock: 0},
+            {item: "480-1", spec: "401/6入", supplier: "苗強", initialStock: 0},
+            {item: "20K", spec: "一版180", supplier: "鑫鼎", initialStock: 2160},
+            {item: "10K", spec: "一版270", supplier: "鑫鼎", initialStock: 300},
+            {item: "2.5K白", spec: "39/包", supplier: "金益昇", initialStock: 160},
+            {item: "5K本", spec: "27/包", supplier: "金益昇", initialStock: 80},
+            {item: "5K白", spec: "27/包", supplier: "金益昇", initialStock: 46},
+            {item: "2.5K本色(天放)", spec: "48/包", supplier: "普飛特", initialStock: 31},
+            {item: "2.5K白色(宇潔)", spec: "48/包", supplier: "普飛特", initialStock: 10},
+            {item: "2.5K白", spec: "48/箱", supplier: "普飛特", initialStock: 240},
+            {item: "2.5KLOGO綠", spec: "96/箱", supplier: "普飛特", initialStock: 0},
+            {item: "2.5K品客多", spec: "48/箱", supplier: "普飛特", initialStock: 83},
+            {item: "2.5半月瓶", spec: "48/箱", supplier: "普飛特", initialStock: 64},
+            {item: "5K本", spec: "34/包", supplier: "普飛特", initialStock: 112},
+            {item: "1.6/2.1胖胖瓶", spec: "70/箱", supplier: "普飛特", initialStock: 19},
+            {item: "承恩/大中和", spec: "66/箱", supplier: "普飛特", initialStock: 13},
+            {item: "2.5KLOGO白", spec: "96/箱", supplier: "建國/懋得", initialStock: 63},
+            {item: "2.5kLOGO綠", spec: "96/箱", supplier: "建國/懋得", initialStock: 36},
+            {item: "1.3F48(本)", spec: "100/箱", supplier: "建國/懋得", initialStock: 24},
+            {item: "1.3F48(白)", spec: "100/箱", supplier: "建國/懋得", initialStock: 30},
+            {item: "L20(本)", spec: "96/箱", supplier: "建國/懋得", initialStock: 23},
+            {item: "L20(白)", spec: "96/箱", supplier: "建國/懋得", initialStock: 4},
+            {item: "M11樣品罐(常)", spec: "500/箱", supplier: "建國/懋得", initialStock: 6},
+            {item: "M14樣品罐(少)", spec: "250/箱", supplier: "建國/懋得", initialStock: 7},
+            {item: "F60(白)", spec: "     /箱", supplier: "建國/懋得", initialStock: 4},
+            {item: "3401-4.2K", spec: "24/包", supplier: "勝紘", initialStock: 400},
+            {item: "369-4.5K", spec: "24/包", supplier: "勝紘", initialStock: 379},
+            {item: "902-1.2K", spec: "88/包", supplier: "乾峰", initialStock: 114},
+            {item: "905-1.8K", spec: "70/包", supplier: "乾峰", initialStock: 74},
+            {item: "5K茶寶", spec: "40/箱", supplier: "京茂", initialStock: 33},
+            {item: "2.5k茶寶", spec: "62/箱", supplier: "京茂", initialStock: 0}
+        ];
+
+        // 初始化
+        window.onload = function() {
+            populateItems();
+            setupEventListeners();
+        };
+
+        // 填充品項下拉選單
+        function populateItems() {
+            const select = document.getElementById('itemSelect');
+            allItems.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.item;
+                option.textContent = item.item;
+                select.appendChild(option);
+            });
+        }
+
+        // 設定事件監聽器
+        function setupEventListeners() {
+            document.getElementById('itemSelect').addEventListener('change', onItemSelect);
+            document.getElementById('usageInput').addEventListener('input', calculateStock);
+            document.getElementById('incomingInput').addEventListener('input', calculateStock);
+        }
+
+        // 當選擇品項時
+        async function onItemSelect() {
+            const select = document.getElementById('itemSelect');
+            const selectedItem = allItems.find(item => item.item === select.value);
+
+            if (selectedItem) {
+                document.getElementById('specInput').value = selectedItem.spec;
+                document.getElementById('supplierInput').value = selectedItem.supplier;
+
+                // 獲取最新庫存
+                try {
+                    const response = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            action: 'getLatestStock',
+                            itemName: selectedItem.item
+                        })
+                    });
+
+                    const result = await response.json();
+                    if (result.success && result.stock !== null) {
+                        document.getElementById('previousStockInput').value = result.stock;
+                    } else {
+                        document.getElementById('previousStockInput').value = selectedItem.initialStock;
+                    }
+                } catch (error) {
+                    console.error('獲取庫存失敗:', error);
+                    document.getElementById('previousStockInput').value = selectedItem.initialStock;
+                }
+
+                document.getElementById('usageInput').value = 0;
+                document.getElementById('incomingInput').value = 0;
+                calculateStock();
+            }
+        }
+
+        // 計算當日庫存
+        function calculateStock() {
+            const previousStock = parseFloat(document.getElementById('previousStockInput').value) || 0;
+            const usage = parseFloat(document.getElementById('usageInput').value) || 0;
+            const incoming = parseFloat(document.getElementById('incomingInput').value) || 0;
+            const currentStock = previousStock - usage + incoming;
+            document.getElementById('stockInput').value = currentStock;
+        }
+
+        // 提交記錄
+        async function submitRecord() {
+            const itemName = document.getElementById('itemSelect').value;
+            if (!itemName) {
+                showMessage('請選擇品項', 'error');
+                return;
+            }
+
+            const selectedItem = allItems.find(item => item.item === itemName);
+            const record = {
+                date: new Date().toLocaleDateString('zh-TW', {year: 'numeric', month: '2-digit', day: '2-digit'}).replace(/\//g, '/'),
+                item: itemName,
+                spec: selectedItem.spec,
+                supplier: selectedItem.supplier,
+                previousStock: parseFloat(document.getElementById('previousStockInput').value),
+                usage: parseFloat(document.getElementById('usageInput').value) || 0,
+                incoming: parseFloat(document.getElementById('incomingInput').value) || 0,
+                stock: parseFloat(document.getElementById('stockInput').value),
+                operator: '系統使用者',
+                timestamp: new Date().toLocaleString('zh-TW')
+            };
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({action: 'save', record: record})
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    showMessage('✅ ' + result.message, 'success');
+                    document.getElementById('itemSelect').value = '';
+                    document.getElementById('specInput').value = '';
+                    document.getElementById('supplierInput').value = '';
+                    document.getElementById('previousStockInput').value = '';
+                    document.getElementById('usageInput').value = 0;
+                    document.getElementById('incomingInput').value = 0;
+                    document.getElementById('stockInput').value = '';
+                } else {
+                    showMessage('❌ ' + result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('❌ 發生錯誤：' + error.message, 'error');
+            }
+        }
+
+        // 寄送報表
+        async function sendReport() {
+            if (!confirm('確定要寄送完整庫存報表到 shallow1003@gmail.com 嗎？')) {
+                return;
+            }
+
+            showMessage('⏳ 正在產生報表並寄送，請稍候...', 'success');
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({action: 'sendReport', operator: '系統使用者'})
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    showMessage('✅ ' + result.message, 'success');
+                } else {
+                    showMessage('❌ ' + result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('❌ 發生錯誤：' + error.message, 'error');
+            }
+        }
+
+        // 查看今日記錄
+        async function viewTodayRecords() {
+            showMessage('⏳ 正在載入今日記錄...', 'success');
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({action: 'getTodayRecords'})
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    displayTodayRecords(result.records, result.date);
+                    document.getElementById('message').innerHTML = '';
+                } else {
+                    showMessage('❌ ' + result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('❌ 發生錯誤：' + error.message, 'error');
+            }
+        }
+
+        // 顯示今日記錄
+        function displayTodayRecords(records, date) {
+            const recordsDiv = document.getElementById('todayRecords');
+            const contentDiv = document.getElementById('recordsContent');
+
+            if (records.length === 0) {
+                contentDiv.innerHTML = '<div class="no-records">📝 今天還沒有填寫任何記錄</div>';
+            } else {
+                let html = `
+                    <p style="margin-bottom: 15px; color: #666;">
+                        <strong>日期：${date}</strong> | 共 ${records.length} 筆記錄
+                    </p>
+                    <table class="records-table">
+                        <thead>
+                            <tr>
+                                <th>品項</th>
+                                <th>前日庫存</th>
+                                <th>領用</th>
+                                <th>進貨</th>
+                                <th>當日庫存</th>
+                                <th>填寫人</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                records.forEach(record => {
+                    html += `
+                        <tr>
+                            <td>${record.item}</td>
+                            <td>${record.previousStock}</td>
+                            <td>${record.usage}</td>
+                            <td>${record.incoming}</td>
+                            <td><strong>${record.stock}</strong></td>
+                            <td>${record.operator}</td>
+                        </tr>
+                    `;
+                });
+
+                html += '</tbody></table>';
+                contentDiv.innerHTML = html;
+            }
+
+            recordsDiv.classList.add('show');
+        }
+
+        // 關閉今日記錄
+        function closeTodayRecords() {
+            document.getElementById('todayRecords').classList.remove('show');
+        }
+
+        // 顯示訊息
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = 'message ' + type;
+            messageDiv.style.display = 'block';
+
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
